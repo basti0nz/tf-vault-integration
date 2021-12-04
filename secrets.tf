@@ -15,6 +15,16 @@ resource "random_password" "password" {
 locals {
   secret_json = jsondecode(data.vault_generic_secret.secret.data_json)
 
+  chat_storage_roles_name = toset([
+    "DEV_USER",
+    "MIGRATION_USER",
+  ])
+
+  chat_storage_password_name = toset([
+    "DEV_PASSWORD",
+    "MIGRATION_PASSWORD",
+  ])
+
   chat_storage_roles = tolist(toset([
     "dev",
     "migration",
@@ -31,18 +41,14 @@ locals {
     "MASTER"        = "slave"
   }
 
-  ch_map    = zipmap(local.chat_storage_roles, local.chat_storage_passwords)
-  data_json = jsonencode(merge(local.secret_json, local.ch_map, local.pair))
+  ch_user   = zipmap(local.chat_storage_roles_name, local.chat_storage_roles)
+  ch_passwd = zipmap(local.chat_storage_password_name, local.chat_storage_passwords)
+  data_json = jsonencode(merge(local.secret_json, local.ch_user, local.ch_passwd, local.pair))
 }
 
 resource "vault_generic_secret" "secret" {
   path      = data.vault_generic_secret.secret.path
   data_json = local.data_json
-}
-
-output "dev_passwd" {
-  value     = local.secret_json["VAULT_SECRET"]
-  sensitive = true
 }
 
 output "data_json" {

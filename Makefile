@@ -5,7 +5,7 @@
 
 .PHONY: all
 
-all: start init plan apply
+all: init plan apply
 
 start:
 	vault server -dev
